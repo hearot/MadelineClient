@@ -1,28 +1,38 @@
 {
-    "name": "hearot/madelineclient",
-    "description": "A client for MadelineProto",
-    "license": "AGPLv3",
-    "authors": [
-        {
-            "name": "hearot",
-            "email": "gabriel@hearot.it"
-        }
-    ],
-    "type": "Client Interface",
-    "require": {
-        "danog/madelineproto": "dev-master",
-        "rych/bytesize": "^1.0"
-    },
-    "autoload": {
-        "psr-0": {
-            "hearot\\MadelineClient\\": "src/"
-        }
-    },
-    "repositories": [
-        {
-            "type": "git",
-            "url": "https://github.com/danog/phpseclib"
-        }
-    ],
-    "minimum-stability": "dev"
+  "name": "hearot/madelineclient",
+  "description": "A client for MadelineProto",
+  "license": "AGPLv3",
+  "authors": [
+    {
+      "name": "hearot",
+      "email": "gabriel@hearot.it"
+    }
+  ],
+  "type": "Client Interface",
+  "require": {
+    "danog/madelineproto": "dev-master",
+    "rych/bytesize": "^1.0"
+  },
+  "autoload": {
+    "psr-0": {
+      "hearot\\MadelineClient\\": "src/"
+    }
+  },
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/danog/phpseclib"
+    }
+  ],
+  "minimum-stability": "dev",
+  "extra": {
+    "phar-builder": {
+      "compression": "No",
+      "name": "madeline.phar",
+      "include": [
+        "src"
+      ],
+      "include-dev": true
+    }
+  }
 }
