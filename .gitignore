@@ -1,0 +1,7 @@
+# Do not save important files.
+
+/vendor
+vendor
+composer.lock
+*.madeline
+*.madeline.lock

@@ -1,21 +1,75 @@
 <?php
+/*
+Copyright 2017 Gabriel Hearot
+(https://hearot.it)
+This file is part of MadelineClient.
+MadelineClient is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+MadelineClient is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU Affero General Public License for more details.
+You should have received a copy of the GNU General Public License along with MadelineClient.
+If not, see <http://www.gnu.org/licenses/>.
+*/
 namespace hearot\MadelineClient;
 
-class Client
+if (!function_exists('readline')) {
+    function readline($prompt = null)
+    {
+        if ($prompt) {
+            echo $prompt;
+        }
+        $fp = fopen('php://stdin', 'r');
+        $line = rtrim(fgets($fp, 1024));
+        return $line;
+    }
+}
+function latinreadline($message)
+{
+    do {
+        if (isset($res)) {
+            echo 'Only latin letters, numbers, dashes (-) and underscores (_) can be used!' . PHP_EOL;
+        }
+        $res = readline($message);
+    } while (!preg_match('/^[A-Za-z0-9_.-]+$/', $res));
+    return $res;
+}
+function platinreadline($message)
+{
+    do {
+        if (isset($res)) {
+            echo 'A project with this name already exists!' . PHP_EOL;
+        }
+        $res = latinreadline($message);
+    } while (file_exists($res));
+    return $res;
+}
+
+function emailreadline($message)
+{
+    do {
+        if (isset($res)) {
+            echo 'This is not a valid email!' . PHP_EOL;
+        }
+        $res = readline($message);
+    } while (!filter_var($res, FILTER_VALIDATE_EMAIL));
+
+    return $res;
+}
+
+class MadelineClient
 {
     const MADELINECLIENT_DEFAULT_SETTINGS = '{"app_info":{"api_id":6,"api_hash":"eb06d4abfb49dc3eeb1aeb98ae0f581e"}}';
     const MADELINECLIENT_VERSION = '1.0';
-    public function __construct($settings = '{"app_info":{"api_id":6,"api_hash":"eb06d4abfb49dc3eeb1aeb98ae0f581e"}}')
+    public function __construct($parameters, $settings = '{"app_info":{"api_id":6,"api_hash":"eb06d4abfb49dc3eeb1aeb98ae0f581e"}}')
     {
         global $argv;
-        $this->settings = (is_array($settings)) ? $settings : null;
-        if (in_array($argv[1], ['-v', '-version', '-ver'])) {
-            echo 'MadelineProto CLI Version ' . MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
+        $this->settings = (is_string($settings)) ? $settings : null;
+        if (in_array($parameters['type'], ['-v', '-version', '-ver'])) {
+            echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
             exit;
-        } elseif (in_array($argv[1], ['-load', '-l'])) {
-            $this->load($argv[2]);
+        } elseif (in_array($parameters['type'], ['-load', '-l'])) {
+            $this->load($parameters['file']);
             exit;
-        } elseif (in_array($argv[1], ['-n', '-new', '-novo'])) {
+        } elseif (in_array($parameters['type'], ['-n', '-new', '-novo'])) {
             $this->new();
             exit;
         } else {
@@ -41,7 +95,7 @@ class Client
                     switch (strtolower($r)) {
               case 'version':
               case '-v':
-                  echo 'MadelineProto CLI Version ' . $this->MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
+                  echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
         continue 2;
               break;
               case 'exit':
@@ -97,7 +151,6 @@ class Client
         echo PHP_EOL;
         echo PHP_EOL;
         $project_composer = '';
-
         foreach (str_split($project) as $c) {
             if (ctype_upper($c)) {
                 $project_composer .= '-' . strtolower($c);
@@ -105,11 +158,9 @@ class Client
                 $project_composer .= $c;
             }
         }
-
         $res = ['name' => $nick . '/' . $project_composer, 'description' => $description, 'license' => 'AGPLv3', 'authors' => [['name' => $name, 'email' => $email]], 'type' => $project, 'require' => ['danog/madelineproto' => 'dev-master'],
 
     'autoload' => ['psr-0' => [$nick . '\\' . $project . '\\' => 'src/']], 'repositories' => [['type' => 'git', 'url' => 'https://github.com/danog/phpseclib']], 'minimum-stability' => 'dev'];
-
         mkdir($project);
         mkdir($project . '/src');
         mkdir($project . '/src/' . $nick);
@@ -129,7 +180,7 @@ class Client
     private function new_session()
     {
         if (readline('Do you want to create a new session? (y/n) ') == 'y') {
-            $MadelineProto = new \danog\MadelineProto\API(json_decode($this->settings, true));
+            $MadelineProto = new \danog\MadelineProto\API(json_decode('{"app_info":{"api_id":6,"api_hash":"eb06d4abfb49dc3eeb1aeb98ae0f581e"}}', true));
             if (readline('Do you want to create a bot or a userbot? (bot/userbot) ') == 'bot') {
                 $MadelineProto->bot_login(readline('Enter the token of the bot: '));
             } else {
@@ -164,7 +215,7 @@ class Client
                     switch (strtolower($r)) {
                 case 'version':
                 case '-v':
-                    echo 'MadelineProto CLI Version ' . $this->MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
+                    echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
                     continue 2;
                 break;
                 case 'exit':
