@@ -66,6 +66,9 @@ class MadelineClient
         if (in_array($parameters['type'], ['-v', '-version', '-ver'])) {
             echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
             exit;
+        } elseif (in_array($parameters['type'], ['-list', '-commands', '-command'])) {
+            echo 'MadelineProto CLI ' . self::MADELINECLIENT_VERSION . " command list:\nmadeline -v/-version/-ver - Get MadelineClient version\nmadeline -list/-commands/-command - Get this list\nmadeline -l/-load PATH_FILE - Load a MadelineProto session\nmadeline -new/-n - Create a new MadelineProto project\nmadeline - Create a new MadelineProto session"  . PHP_EOL;
+            exit;
         } elseif (in_array($parameters['type'], ['-load', '-l'])) {
             $this->load($parameters['file']);
             exit;
@@ -81,7 +84,12 @@ class MadelineClient
     {
         if (file_exists($path)) {
             try {
-                $MadelineProto = \danog\MadelineProto\Serialization::deserialize($path);
+                if (readline('Do you want to handle updates? y/n') === 'y') {
+                    $no_updates = false;
+                } else {
+                    $no_updates = true;
+                }
+                $MadelineProto = \danog\MadelineProto\Serialization::deserialize($path, $no_updates);
             } catch (\danog\MadelineProto\Exception $e) {
                 echo 'Not valid .madeline file, please re-create it.' . PHP_EOL;
                 exit;
@@ -93,16 +101,16 @@ class MadelineClient
                         continue;
                     }
                     switch (strtolower($r)) {
-              case 'version':
-              case '-v':
-                  echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
-        continue 2;
-              break;
-              case 'exit':
-                  echo 'Bye!' . PHP_EOL;
-                  exit;
-              break;
-          }
+                       case 'version':
+                       case '-v':
+                         echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
+                         continue 2;
+                         break;
+                       case 'exit':
+                         echo 'Bye!' . PHP_EOL;
+                         exit;
+                         break;
+                    }
                     $l = explode(' ', $r);
                     try {
                         $method = $MadelineProto->API->methods->find_by_method($l[0]);
@@ -121,6 +129,22 @@ class MadelineClient
                         $param_array = array();
                         $i = 1;
                         foreach ($method['params'] as $method_param) {
+                            if (in_array($method_param['type'], ['true', 'Bool', 'boolean', 'false'])) {
+                                if ($l[$i] === 'false') {
+                                    $l[$i] = false;
+                                } else {
+                                    $l[$i] = true;
+                                }
+                            } elseif (in_array($method_param['type'], ['int', 'long', 'integer'])) {
+                                if (!is_numeric($l[$i])) {
+                                    $l[$i] = 0;
+                                }
+                            } else {
+                                json_decode($l[$i]);
+                                if (json_last_error() === JSON_ERROR_NONE) {
+                                    $l[$i] = json_decode($l[$i]);
+                                }
+                            }
                             $param_array[$method_param['name']] = $l[$i++];
                         }
                         var_dump($MadelineProto->{$node[0]}->{$node[1]}($param_array));
@@ -213,16 +237,16 @@ class MadelineClient
                         continue;
                     }
                     switch (strtolower($r)) {
-                case 'version':
-                case '-v':
-                    echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
-                    continue 2;
-                break;
-                case 'exit':
-                    echo 'Bye!' . PHP_EOL;
-                    exit;
-                break;
-                }
+                       case 'version':
+                       case '-v':
+                         echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
+                         continue 2;
+                         break;
+                       case 'exit':
+                         echo 'Bye!' . PHP_EOL;
+                         exit;
+                         break;
+                    }
                     $l = explode(' ', $r);
                     try {
                         $method = $MadelineProto->API->methods->find_by_method($l[0]);
@@ -241,6 +265,22 @@ class MadelineClient
                         $param_array = array();
                         $i = 1;
                         foreach ($method['params'] as $method_param) {
+                            if (in_array($method_param['type'], ['true', 'Bool', 'boolean', 'false'])) {
+                                if ($l[$i] === 'false') {
+                                    $l[$i] = false;
+                                } else {
+                                    $l[$i] = true;
+                                }
+                            } elseif (in_array($method_param['type'], ['int', 'long', 'integer'])) {
+                                if (!is_numeric($l[$i])) {
+                                    $l[$i] = 0;
+                                }
+                            } else {
+                                json_decode($l[$i]);
+                                if (json_last_error() === JSON_ERROR_NONE) {
+                                    $l[$i] = json_decode($l[$i]);
+                                }
+                            }
                             $param_array[$method_param['name']] = $l[$i++];
                         }
                         var_dump($MadelineProto->{$node[0]}->{$node[1]}($param_array));
