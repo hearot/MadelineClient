@@ -204,7 +204,7 @@ class MadelineClient
     private function new_session()
     {
         if (readline('Do you want to create a new session? (y/n) ') == 'y') {
-            $MadelineProto = new \danog\MadelineProto\API(json_decode('{"app_info":{"api_id":6,"api_hash":"eb06d4abfb49dc3eeb1aeb98ae0f581e"}}', true));
+            $MadelineProto = new \danog\MadelineProto\API(['app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e']]);
             if (readline('Do you want to create a bot or a userbot? (bot/userbot) ') == 'bot') {
                 $MadelineProto->bot_login(readline('Enter the token of the bot: '));
             } else {
