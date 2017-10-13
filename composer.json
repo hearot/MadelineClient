@@ -21,7 +21,11 @@
   "repositories": [
     {
       "type": "git",
-      "url": "https://github.com/danog/phpseclib"
+      "url": "https://github.com/phpseclib/phpseclib"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/danog/magicalserializer"
     }
   ],
   "minimum-stability": "dev",
