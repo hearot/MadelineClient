@@ -19,7 +19,7 @@ try {
         $parameters['type'] = '';
     }
     if (isset($argv[2])) {
-        $parameters['file'] = $argv[2];
+        $parameters['file'] = json_decode($argv[2], true) === NULL ? $argv[2] : json_decode($argv[2], true);
     } else {
         $parameters['file'] = '';
     }
