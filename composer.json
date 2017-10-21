@@ -21,7 +21,7 @@
   "repositories": [
     {
       "type": "git",
-      "url": "https://github.com/phpseclib/phpseclib"
+      "url": "https://github.com/danog/phpseclib"
     },
     {
       "type": "git",
