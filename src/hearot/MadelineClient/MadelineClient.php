@@ -205,8 +205,13 @@ class MadelineClient
                                     continue;
                                 }
                                 $method_param['name'] .= ':'.$method_param['type'];
+<<<<<<< HEAD
                                 $method_param['name'] = isset($method_param['pow']) ? '[ '.$method_param['name'].' ]' : $method_param['name'];
 
+=======
+                                $method_param['name'] = isset($method_param['pow']) ? '[ '.$method_param['name'].' ]' : $method_param['name']; 
+                                
+>>>>>>> c614269ba24b281f086626551d77cbbb3ffdabdc
                                 //$help_string .= isset($method_param['pow']) ? '['. $method_param['name'] .']' : $method_param['name'];
                                 $help_string .= $method_param['name'];
                                 $help_string .= ' ';
@@ -234,7 +239,11 @@ class MadelineClient
                             continue;
                         }
                         $method_param['name'] .= ':'.$method_param['type'];
+<<<<<<< HEAD
                         $method_param['name'] = isset($method_param['pow']) ? '[ '.$method_param['name'].' ]' : $method_param['name'];
+=======
+                        $method_param['name'] = isset($method_param['pow']) ? '[ '.$method_param['name'].' ]' : $method_param['name']; 
+>>>>>>> c614269ba24b281f086626551d77cbbb3ffdabdc
                         $help_string .= $method_param['name'] . ' ';
                     }
                     echo 'Help: ' . $l[0] . ' ' . $help_string . PHP_EOL;
@@ -250,7 +259,11 @@ class MadelineClient
                         if (in_array($method_param['type'], ['true', 'false', 'Bool'])) {
                             if ($l[$i] === 'false') {
                                 $param_array[$method_param['name']] = false;
+<<<<<<< HEAD
                             } elseif ($l[$i] === 'true') {
+=======
+                            } else if ($l[$i] === 'true') {
+>>>>>>> c614269ba24b281f086626551d77cbbb3ffdabdc
                                 $param_array[$method_param['name']] = true;
                             } else {
                                 $param_array[$method_param['name']] = (bool) $l[$i];
