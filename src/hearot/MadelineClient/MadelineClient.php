@@ -57,110 +57,29 @@ function emailreadline($message)
 
 class MadelineClient
 {
-    const MADELINECLIENT_DEFAULT_SETTINGS = '{"app_info":{"api_id":6,"api_hash":"eb06d4abfb49dc3eeb1aeb98ae0f581e"}}';
     const MADELINECLIENT_VERSION = '1.0';
-    public function __construct($parameters, $settings = '{"app_info":{"api_id":6,"api_hash":"eb06d4abfb49dc3eeb1aeb98ae0f581e"}}')
+    public function __construct($parameters, $settings = ["app_info" => ["api_id" => 6,"api_hash" => "eb06d4abfb49dc3eeb1aeb98ae0f581e"]])
     {
         global $argv;
-        $this->settings = (is_string($settings)) ? $settings : null;
+        $this->settings = $settings;
         if (in_array($parameters['type'], ['-v', '-version', '-ver'])) {
             echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
             exit;
-        } elseif (in_array($parameters['type'], ['-list', '-commands', '-command'])) {
+        } elseif (in_array($parameters['type'], ['-list', '-commands', '-command', '-help', '-h'])) {
             echo 'MadelineProto CLI ' . self::MADELINECLIENT_VERSION . " command list:\nmadeline -v/-version/-ver - Get MadelineClient version\nmadeline -list/-commands/-command - Get this list\nmadeline -l/-load PATH_FILE - Load a MadelineProto session\nmadeline -new/-n - Create a new MadelineProto project\nmadeline - Create a new MadelineProto session"  . PHP_EOL;
             exit;
         } elseif (in_array($parameters['type'], ['-load', '-l'])) {
             $this->load($parameters['file']);
             exit;
         } elseif (in_array($parameters['type'], ['-n', '-new', '-novo'])) {
-            $this->new();
+            $this->new_project();
             exit;
         } else {
             $this->new_session();
             exit;
         }
     }
-    private function load($path)
-    {
-        if (file_exists($path)) {
-            try {
-                if (readline('Do you want to handle updates? y/n') === 'y') {
-                    $no_updates = false;
-                } else {
-                    $no_updates = true;
-                }
-                $MadelineProto = \danog\MadelineProto\Serialization::deserialize($path, $no_updates);
-            } catch (\danog\MadelineProto\Exception $e) {
-                echo 'Not valid .madeline file, please re-create it.' . PHP_EOL;
-                exit;
-            }
-            while (1) {
-                try {
-                    $r = readline('> ');
-                    if (empty($r)) {
-                        continue;
-                    }
-                    switch (strtolower($r)) {
-                       case 'version':
-                       case '-v':
-                         echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
-                         continue 2;
-                         break;
-                       case 'exit':
-                         echo 'Bye!' . PHP_EOL;
-                         exit;
-                         break;
-                    }
-                    $l = explode(' ', $r);
-                    try {
-                        $method = $MadelineProto->API->methods->find_by_method($l[0]);
-                    } catch (Exception $e) {
-                        continue;
-                    }
-                    if ($method and count($l) == 1) {
-                        $help_string = '';
-                        foreach ($method['params'] as $method_param) {
-                            $help_string .= $method_param['name'] . ' ';
-                        }
-                        echo 'Help: ' . $l[0] . ' ' . $help_string . PHP_EOL;
-                        continue;
-                    } elseif ($method) {
-                        $node = explode('.', $l[0]);
-                        $param_array = array();
-                        $i = 1;
-                        foreach ($method['params'] as $method_param) {
-                            if (in_array($method_param['type'], ['true', 'Bool', 'boolean', 'false'])) {
-                                if ($l[$i] === 'false') {
-                                    $l[$i] = false;
-                                } else {
-                                    $l[$i] = true;
-                                }
-                            } elseif (in_array($method_param['type'], ['int', 'long', 'integer'])) {
-                                if (!is_numeric($l[$i])) {
-                                    $l[$i] = 0;
-                                }
-                            } else {
-                                json_decode($l[$i]);
-                                if (json_last_error() === JSON_ERROR_NONE) {
-                                    $l[$i] = json_decode($l[$i]);
-                                }
-                            }
-                            $param_array[$method_param['name']] = $l[$i++];
-                        }
-                        var_dump($MadelineProto->{$node[0]}->{$node[1]}($param_array));
-                    }
-                    \danog\MadelineProto\Serialization::serialize($path, $MadelineProto);
-                } catch (Exception $e) {
-                    continue;
-                }
-            }
-            exit;
-        } else {
-            echo 'The file doesn\'t exist. Please submit a valid .madeline file.' . PHP_EOL;
-            exit;
-        }
-    }
-    private function new()
+    private function new_project()
     {
         echo 'This script will create a MadelineProto project and a composer.json file for it. Please answer to the following questions.' . PHP_EOL . PHP_EOL;
         $nick = strtolower(latinreadline('Your nickname (example: danog): '));
@@ -184,7 +103,7 @@ class MadelineClient
         }
         $res = ['name' => $nick . '/' . $project_composer, 'description' => $description, 'license' => 'AGPLv3', 'authors' => [['name' => $name, 'email' => $email]], 'type' => $project, 'require' => ['danog/madelineproto' => 'dev-master'],
 
-    'autoload' => ['psr-0' => [$nick . '\\' . $project . '\\' => 'src/']], 'repositories' => [['type' => 'git', 'url' => 'https://github.com/danog/phpseclib']], 'minimum-stability' => 'dev'];
+        'autoload' => ['psr-0' => [$nick . '\\' . $project . '\\' => 'src/']], 'repositories' => [['type' => 'git', 'url' => 'https://github.com/danog/phpseclib']], 'minimum-stability' => 'dev'];
         mkdir($project);
         mkdir($project . '/src');
         mkdir($project . '/src/' . $nick);
@@ -201,98 +120,167 @@ class MadelineClient
         echo "Done!\n\nFeel free to edit " . $project . "/composer.json\n\nYour new MadelineProto bot is located in " . $project . '/src/' . $nick . '/' . $project . "/Main.php\n\n================\n\nRun the following commands to start the bot:\n\ncd " . $project . ' and then php bot.php' . PHP_EOL;
         exit;
     }
+    private function load($path)
+    {
+        var_dump($path);
+        if (file_exists($path)) {
+            $this->session_file = $path;
+            try {
+                if (readline('Do you want to handle updates? y/n ') === 'y') {
+                    $no_updates = false;
+                } else {
+                    $no_updates = true;
+                }
+                $this->MadelineProto = \danog\MadelineProto\Serialization::deserialize($this->session_file, $no_updates);
+            } catch (\danog\MadelineProto\Exception $e) {
+                echo 'Not valid .madeline file, please re-create it.' . PHP_EOL;
+                echo $e;
+                exit;
+            }
+            $this->run();
+            exit;
+        } else {
+            echo 'The file doesn\'t exist. Please submit a valid .madeline file.' . PHP_EOL;
+            exit;
+        }
+    }
     private function new_session()
     {
         if (readline('Do you want to create a new session? (y/n) ') == 'y') {
-            $MadelineProto = new \danog\MadelineProto\API(['app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e']]);
+            $this->MadelineProto = new \danog\MadelineProto\API(['app_info' => ['api_id' => 6, 'api_hash' => 'eb06d4abfb49dc3eeb1aeb98ae0f581e']]);
             if (readline('Do you want to create a bot or a userbot? (bot/userbot) ') == 'bot') {
-                $MadelineProto->bot_login(readline('Enter the token of the bot: '));
+                $this->MadelineProto->bot_login(readline('Enter the token of the bot: '));
             } else {
-                $sentCode = $MadelineProto->phone_login(readline('Enter your phone number: '));
+                $sentCode = $this->MadelineProto->phone_login(readline('Enter your phone number: '));
                 \danog\MadelineProto\Logger::log([$sentCode], \danog\MadelineProto\Logger::NOTICE);
                 echo 'Enter the code you received: ';
                 $code = fgets(STDIN, (isset($sentCode['type']['length']) ? $sentCode['type']['length'] : 5) + 1);
-                $authorization = $MadelineProto->complete_phone_login($code);
+                $authorization = $this->MadelineProto->complete_phone_login($code);
                 \danog\MadelineProto\Logger::log([$authorization], \danog\MadelineProto\Logger::NOTICE);
                 if ($authorization['_'] === 'account.noPassword') {
                     throw new \danog\MadelineProto\Exception('2FA is enabled but no password is set!');
                 }
                 if ($authorization['_'] === 'account.password') {
                     \danog\MadelineProto\Logger::log(['2FA is enabled'], \danog\MadelineProto\Logger::NOTICE);
-                    $authorization = $MadelineProto->complete_2fa_login(readline('Please enter your password (hint ' . $authorization['hint'] . '): '));
+                    $authorization = $this->MadelineProto->complete_2fa_login(readline('Please enter your password (hint ' . $authorization['hint'] . '): '));
                 }
                 if ($authorization['_'] === 'account.needSignup') {
                     \danog\MadelineProto\Logger::log(['Registering new user'], \danog\MadelineProto\Logger::NOTICE);
-                    $authorization = $MadelineProto->complete_signup(readline('Please enter your first name: '), readline('Please enter your last name (can be empty): '));
+                    $authorization = $this->MadelineProto->complete_signup(readline('Please enter your first name: '), readline('Please enter your last name (can be empty): '));
                 }
             }
-            $session_file = readline('Enter the name for the session file: ');
+            $this->session_file = readline('Enter the name for the session file: ');
             echo 'Serializing the session...' . PHP_EOL;
-            \danog\MadelineProto\Serialization::serialize($session_file, $MadelineProto);
+            \danog\MadelineProto\Serialization::serialize($this->session_file, $this->MadelineProto);
             echo 'Serialized the session' . PHP_EOL;
-            while (1) {
-                try {
-                    $r = readline('> ');
-                    if (empty($r)) {
-                        continue;
-                    }
-                    switch (strtolower($r)) {
-                       case 'version':
-                       case '-v':
-                         echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
-                         continue 2;
-                         break;
-                       case 'exit':
-                         echo 'Bye!' . PHP_EOL;
-                         exit;
-                         break;
-                    }
-                    $l = explode(' ', $r);
-                    try {
-                        $method = $MadelineProto->API->methods->find_by_method($l[0]);
-                    } catch (Exception $e) {
-                        continue;
-                    }
-                    if ($method and count($l) == 1) {
-                        $help_string = '';
-                        foreach ($method['params'] as $method_param) {
-                            $help_string .= $method_param['name'] . ' ';
-                        }
-                        echo 'Help: ' . $l[0] . ' ' . $help_string . PHP_EOL;
-                        continue;
-                    } elseif ($method) {
-                        $node = explode('.', $l[0]);
-                        $param_array = array();
-                        $i = 1;
-                        foreach ($method['params'] as $method_param) {
-                            if (in_array($method_param['type'], ['true', 'Bool', 'boolean', 'false'])) {
-                                if ($l[$i] === 'false') {
-                                    $l[$i] = false;
-                                } else {
-                                    $l[$i] = true;
-                                }
-                            } elseif (in_array($method_param['type'], ['int', 'long', 'integer'])) {
-                                if (!is_numeric($l[$i])) {
-                                    $l[$i] = 0;
-                                }
-                            } else {
-                                json_decode($l[$i]);
-                                if (json_last_error() === JSON_ERROR_NONE) {
-                                    $l[$i] = json_decode($l[$i]);
-                                }
-                            }
-                            $param_array[$method_param['name']] = $l[$i++];
-                        }
-                        var_dump($MadelineProto->{$node[0]}->{$node[1]}($param_array));
-                        \danog\MadelineProto\Serialization::serialize($session_file, $MadelineProto);
-                    }
-                } catch (Exception $e) {
-                    continue;
-                }
-            }
+            $this->run();
         } else {
             echo 'Bye!' . PHP_EOL;
             exit;
+        }
+    }
+
+    public function run()
+    {
+        while (1) {
+            \danog\MadelineProto\Serialization::serialize($this->session_file, $this->MadelineProto);
+            try {
+                $r = readline('> ');
+                switch (strtolower($r)) {
+                    case 'version':
+                    case '-v':
+                        echo 'MadelineProto CLI Version ' . self::MADELINECLIENT_VERSION . "\nDeveloped by Hearot, MadelineProto by Daniil Gentili.\nCopyright 2017" . PHP_EOL;
+                        continue 2;
+                    case 'help':
+                    case '-h':
+                        echo "Usage:\n\nmethod parameter1 parameter2\n\nAvailable methods:\n\n";
+                        foreach ($this->MadelineProto->API->methods->by_method as $predicate => $id) {
+                            if (strpos($predicate, '.') === false || isset(\danog\MadelineProto\MTProto::DISALLOWED_METHODS[$predicate])) {
+                                continue;
+                            }
+                            $help_string = '';
+                            $opt_string = '';
+                            foreach ($this->MadelineProto->API->methods->find_by_id($id)['params'] as $method_param) {
+                                if (in_array($method_param['name'], ['flags', 'random_id', 'random_bytes'])) {
+                                    continue;
+                                }
+                                $method_param['name'] .= ':'.$method_param['type'];
+                                $method_param['name'] = isset($method_param['pow']) ? '[ '.$method_param['name'].' ]' : $method_param['name'];
+
+                                //$help_string .= isset($method_param['pow']) ? '['. $method_param['name'] .']' : $method_param['name'];
+                                $help_string .= $method_param['name'];
+                                $help_string .= ' ';
+                            }
+                            echo str_pad($predicate, 40).$help_string.PHP_EOL;
+                        }
+                        continue 2;
+                    case '':
+                        echo "Type help for help\n";
+                        continue 2;
+                    case 'exit':
+                        echo 'Bye!' . PHP_EOL;
+                        exit;
+                }
+                $l = explode(' ', $r);
+                try {
+                    $method = $this->MadelineProto->API->methods->find_by_method($l[0]);
+                } catch (Exception $e) {
+                    continue;
+                }
+                if ($method and count($l) == 1) {
+                    $help_string = '';
+                    foreach ($method['params'] as $method_param) {
+                        if (in_array($method_param['name'], ['flags', 'random_id', 'random_bytes'])) {
+                            continue;
+                        }
+                        $method_param['name'] .= ':'.$method_param['type'];
+                        $method_param['name'] = isset($method_param['pow']) ? '[ '.$method_param['name'].' ]' : $method_param['name'];
+                        $help_string .= $method_param['name'] . ' ';
+                    }
+                    echo 'Help: ' . $l[0] . ' ' . $help_string . PHP_EOL;
+                    continue;
+                } elseif ($method) {
+                    $node = explode('.', $l[0]);
+                    $param_array = array();
+                    $i = 1;
+                    foreach ($method['params'] as $method_param) {
+                        if (in_array($method_param['name'], ['flags', 'random_id', 'random_bytes'])) {
+                            continue;
+                        }
+                        if (in_array($method_param['type'], ['true', 'false', 'Bool'])) {
+                            if ($l[$i] === 'false') {
+                                $param_array[$method_param['name']] = false;
+                            } elseif ($l[$i] === 'true') {
+                                $param_array[$method_param['name']] = true;
+                            } else {
+                                $param_array[$method_param['name']] = (bool) $l[$i];
+                            }
+                        } elseif (in_array($method_param['type'], ['int', 'long'])) {
+                            $param_array[$method_param['name']] = $l[$i];
+                        } elseif ($method_param['type'] === 'string') {
+                            if (in_array($l[$i][0], ['"', "'"])) {
+                                $l[$i] = substr($l[$i], 1);
+                                while (!in_array(substr($l[$i][0], -1), ['"', "'"])) {
+                                    $param_array[$method_param['name']] .= $l[$i];
+                                    $i++;
+                                }
+                                $l[$i] = substr($l[$i], 0, -1);
+                            }
+                            $param_array[$method_param['name']] .= $l[$i];
+                        } else {
+                            $param_array[$method_param['name']] = json_decode($l[$i], true);
+                        }
+                        $i++;
+                    }
+                    var_dump($this->MadelineProto->{$node[0]}->{$node[1]}($param_array));
+                }
+            } catch (Exception $e) {
+                echo $e.PHP_EOL;
+            } catch (\danog\MadelineProto\Exception $e) {
+                echo $e.PHP_EOL;
+            } catch (\danog\MadelineProto\RPCErrorException $e) {
+                echo $e.PHP_EOL;
+            }
         }
     }
 }
